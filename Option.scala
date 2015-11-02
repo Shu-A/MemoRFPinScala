@@ -33,6 +33,10 @@ object My {
 
   object Option {
 
+    def mean_0(xs: Seq[Double]): Double =
+      if (xs.isEmpty) throw new ArithmeticException("mean of empty list!")
+      else xs.sum / xs.length
+
     def mean(xs: Seq[Double]): Option[Double] =
       if (xs.isEmpty) None
       else Some(xs.sum / xs.length)
