@@ -27,6 +27,7 @@ object My {
       case Some(x) if f(x) => this
       case _ => None
     }
+
   }
   case class Some[+A](get: A) extends Option[A]
   case object None extends Option[Nothing]
@@ -43,5 +44,25 @@ object My {
 
     def variance(xs: Seq[Double]): Option[Double] =
       mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
+
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+      a.flatMap(a => b.map(b => f(a, b)))
+      //a.map(a => b.map(b => f(a, b))).getOrElse(None)
+      /*
+      if ( a == None || b == None) => None
+      else f(a, b)
+      */
+
+    def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+      case Nil => Some(Nil)
+      //case h :: t => map2(h,t add  sequence(t))(h :: _)
+      case h :: t => h.flatMap(h => sequence(t).map(h :: _))
+    }
+      //a.foldLeft(Some(Nil))(map2(_, _)(_ :+ _))
+
+    def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = a match {
+      case Nil => Some(Nil)
+      case h :: t => f(h).flatMap(hd => traverse(t)(f).map(hd :: _))
+    }
   }
 }

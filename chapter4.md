@@ -174,19 +174,80 @@ Optionを適用する場合は、コード全体を修正する必要はない�
 
 リフトするための高階関数は以下の通り。
 
-```
+```Scala
 def lift[A,B](f: A => B): Option[A] => Option[B] = _.map(f)
 ```
 
 math.absに適用すると、
 
-```
+```Scala
 scala> val abs0 = lift[Double,Double](math.abs)
 abs0: Option[Double] => Option[Double] = <function1>
 
 scala> abs0(Option(-1.0))
 res1: Option[Double] = Some(1.0)
 ```
+
+### 自動車保険会社のWebサイトロジック実装の例
+
+```Scala
+/**
+* 2つの主要項目から年間自動車保険料を計算するための極秘の式
+*/
+def insuranceRateQuote(age: Int, numberOfSpeedingTickets: Int): Double
+```
+
+年齢とスピード違反切符の番号がWebフォームで送信されると、フィールドは文字列なので整数へ変換しないといけない。
+この際、文字列が有効でないと __NumberFormatException__ が投げられます。
+
+ここで、toIntの例外ベースのAPIをOptionに変換することで、parseInsuranceRateQuote関数を実装する。
+
+```Scala
+def parseInsuranceRateQuote(
+  age: String
+  numberOfSpeedingTickets: String): Option[Double] ={
+    val optAge: Option[Int] = Try(age.toInt)
+    val optTickets: Option[Int] = Try(NumberFormatException.toInt)
+    insuranceRateQuote(optAge, optTickets)
+}
+
+def Try[A](a: => A): Option[A] =
+  try Some(a)
+  catch { case e: Exception => None}
+```
+
+Try関数により、例外ベースのAPIをOptionベースのAPIに変換している。
+
+こうすると、insuranceRateQuoteは、Option[Int]値で引数を受け取れないといけない。
+そこで、insuranceRateQuoteをリフトして、Option値のコンテキストに対応させる。(Exercise 4.3)
+
+リフト関数map2を使って、以下のように対応させることができる。
+
+```Scala
+def parseInsuranceRateQuote(
+  age: String,
+  numberOfSpeedingTickets: String): Option[String] = {
+   val optAge: Option[Int] = Try { age.toInt }
+   val optTickets: Option[Int] = Try { numberOfSpeedingTickets.toInt }
+   map2(optAge, optTickets)(insuranceRateQuote)
+   }  )
+```
+
+Try { age.toInt }は、　Try(age.toInt) と同じである。
+こうすると、insuranceRateQuoteを変更する必要はない。
+
+String型の値からなるリスト全体をOption[Int]として、解析したい場合、以下のようにすればよいですが、この方法はリストを２回走査するため非効率である。
+* 1回目：StringをそれぞれOption[Int]に変換
+* 2回目：Option[Int]値をOption[List[Int]]にまとめる
+
+```Scala
+def parseInts(a: List[String]): Option[List[Int]] =
+  sequence(a map (i => Try(i.toInt)))
+```
+
+これをリスト１回の走査ですむように実装する。(Exercise 4.5)
+
+TODO: traverseの呼び方
 
 ## 参考情報
 * 書籍:[Scala関数型デザイン＆プログラミング](http://www.amazon.co.jp/Scala%E9%96%A2%E6%95%B0%E5%9E%8B%E3%83%87%E3%82%B6%E3%82%A4%E3%83%B3-%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0-%E2%80%95Scalaz%E3%82%B3%E3%83%B3%E3%83%88%E3%83%AA%E3%83%93%E3%83%A5%E3%83%BC%E3%82%BF%E3%83%BC%E3%81%AB%E3%82%88%E3%82%8B%E9%96%A2%E6%95%B0%E5%9E%8B%E5%BE%B9%E5%BA%95%E3%82%AC%E3%82%A4%E3%83%89-impress-gear/dp/4844337769)
