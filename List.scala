@@ -18,35 +18,36 @@ object List {
     if (as.isEmpty) Nil
     else Cons(as.head, apply(as.tail: _*))
 
-  def tail[A](l: List[A]): List[A] = l match {
+  def tail[A](xs: List[A]): List[A] = xs match {
     case Nil => Nil
-    case Cons(_, xs) => xs
+    case Cons(x, xs) => xs
   }
 
-  def setHead[A](l: List[A], r: A): List[A] = l match {
+  def setHead[A](xs: List[A], a: A): List[A] = xs match {
     case Nil => Nil
-    case Cons(x, xs) => Cons(r, xs)
+    case Cons(x, xs) => Cons(a, xs)
   }
 
-  def drop[A](l: List[A], n: Int): List[A] = n match {
-    case 0 => l
-    case _ => drop(List.tail(l), n - 1)
+  def drop[A](xs: List[A], n: Int): List[A] = xs match {
+    case Nil => Nil
+    case Cons(x, xs) => if (n > 1) drop(xs, n - 1) else xs
   }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+  /*
+  def dropWhile[A](xs: List[A], f: A => Boolean): List[A] = xs match {
+    case Nil => Nil
+    case Cons(x, xs) => if (f(x)) dropWhile(xs, f) else xs
+  }
+  */
+  def dropWhile[A](xs: List[A], f: A => Boolean): List[A] = xs match {
     case Cons(x, xs) if f(x) => dropWhile(xs, f)
-    case _ => l
+    case _ => xs
   }
 
   def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
     case Nil => a2
-    case Cons(x, xs) => Cons(x, append(xs, a2))
+    // I guess a below implementation is NOT tail recursive, isn't it ?
+    //case Cons(h, t) => Cons(t, append(h, a2))
+    case Cons(h, t) => append(t, Cons(h, a2))
   }
-
-  def init[A](l: List[A]): List[A] = l match {
-    case Nil => Nil
-    case Cons(_, Nil) => Nil
-    case Cons(x, xs) => Cons(x, init(xs))
-  }
-
 }
