@@ -44,10 +44,11 @@ object List {
     case _ => xs
   }
 
+  @annotation.tailrec
   def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
     case Nil => a2
     // I guess a below implementation is NOT tail recursive, isn't it ?
-    //case Cons(h, t) => Cons(t, append(h, a2))
+    //case Cons(h, t) => Cons(h, append(t, a2))
     case Cons(h, t) => append(t, Cons(h, a2))
   }
 }
