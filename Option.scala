@@ -1,4 +1,4 @@
-import scala.{Option => _, Either => _, _}
+//import scala.{Option => _, Either => _, _}
 
 object My {
   sealed trait Option[+A] {
