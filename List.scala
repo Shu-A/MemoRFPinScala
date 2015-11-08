@@ -44,10 +44,20 @@ object List {
     case _ => xs
   }
 
-  @annotation.tailrec
+  def dropWhile2[A](xs: List[A])(f: A => Boolean): List[A] = xs match {
+    case Cons(x, xs) if f(x) => dropWhile2(xs)(f)
+    case _ => xs
+  }
+
   def append[A](a1: List[A], a2: List[A]): List[A] = a1 match {
     case Nil => a2
-    //case Cons(h, t) => Cons(h, append(t, a2))
-    case Cons(h, t) => append(t, Cons(h, a2))
+    case Cons(h, t) => Cons(h, append(t, a2))
+    //case Cons(h, t) => append(t, Cons(h, a2))
+  }
+
+  def init[A](l: List[A]): List[A] = l match {
+    case Nil => sys.error("Empty list")
+    case Cons(_, Nil) => Nil
+    case Cons(h, t) => Cons(h, init(t))
   }
 }
