@@ -104,7 +104,7 @@ def dropWhile[A](xs: List[A], f: A => Boolean): List[A] = xs match {
 
 以下のようなListの末尾を除く全ての要素で構成されたListを返す関数iinitは、単方向リストが故にリストの最後のConsを操作するために、それより前のConsオブジェクトをすべてコピーする必要が出てくる。
 
-```
+```Scala
 def init[A](l: List[A]): List[A]
 ```
 
@@ -123,13 +123,64 @@ res17: List[Int] = Cons(4,Cons(5,Nil))
 fに無名関数を渡した場合、引数の型はList[A]のAと推論されそうだが、してくれない。
 この型推論をさせるためには、次のようにカリー化する必要がある。
 
-```
+```Scala
 def dropWhile2[A](l: List[A])(f: A => Boolean): List[A]
 ```
 
 呼び出すと、次のように無名関数の引数を指定しなくても、引数グループの左から右へ推論してくれる。
 
-```
+```Scala
 scala> List.dropWhile2(List(1,2,3,4,5))(x => x < 4)
 res19: List[Int] = Cons(4,Cons(5,Nil))
 ```
+
+## リストの再帰と高階関数の一般化
+
+次のsumとpuroductの実装を見ると以下の共通点がある。
+* リストが空の場合に決まった値を返すこと
+* リストが空でない場合に要素を結果に追加するための関数があること
+
+```Scala
+def sum(ints: List[Int]): Int = ints match {
+  case Nil => 0
+  case Cons(x, xs) => x + sum(xs)
+}
+
+def product(ds: List[Double]): Double = ds match {
+  case Nil => 1.0
+  case Cons(x, xs) => x * product(xs)
+}
+```
+
+上のような関数は、次のようなfoldRight関数で一般化できる。
+
+```Scala
+def foldRight[A, B](as: List[A], z: B)(f: (A, B) => B): B = as match {
+  case Nil => z
+  case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+}
+```
+
+次のように呼ぶとよれぞれ、sumとproductと同じ処理となる。
+
+```Scala
+scala> List.foldRight(List(1,2,3,4,5), 0)(_ + _)
+res1: Int = 15
+
+scala> List.foldRight(List(1,2,3,4,5), 1)(_ * _)
+res2: Int = 120
+```
+
+式展開は、次のようになる。
+```
+f(1, f(2, f(3, f(4, f(5, z)))))
+```
+
+次のように呼ぶとわかりやすい。
+
+```Scala
+scala> List.foldRight(List("1","2","3","4","5"), "0")(_ + _)
+res7: String = 123450
+```
+
+foldRightは、(フレームをコールスタックにプッシュしながら)リストを最後まで走査してからでないと畳み込みを開始できない。
