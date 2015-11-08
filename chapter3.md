@@ -99,3 +99,37 @@ def dropWhile[A](xs: List[A], f: A => Boolean): List[A] = xs match {
   case _ => xs
 }
 ```
+
+#### 単方向リストのデータ共有がうまくいかない場合
+
+以下のようなListの末尾を除く全ての要素で構成されたListを返す関数iinitは、単方向リストが故にリストの最後のConsを操作するために、それより前のConsオブジェクトをすべてコピーする必要が出てくる。
+
+```
+def init[A](l: List[A]): List[A]
+```
+
+### 高階関数の型推論の改善
+
+高階関数には、無名関数が呼ばれることが多い。dropWhileを以下のように呼ぶ必要があり、第２引数の無名関数の引数の型をアノテーションで指定する必要がある。
+
+```
+scala> List.dropWhile(List(1,2,3,4,5), (x: Int) => x < 4)
+res13: List[Int] = Cons(4,Cons(5,Nil))
+
+scala> List.dropWhile(List(1,2,3,4,5), {x:Int => x < 4})
+res17: List[Int] = Cons(4,Cons(5,Nil))
+```
+
+fに無名関数を渡した場合、引数の型はList[A]のAと推論されそうだが、してくれない。
+この型推論をさせるためには、次のようにカリー化する必要がある。
+
+```
+def dropWhile2[A](l: List[A])(f: A => Boolean): List[A]
+```
+
+呼び出すと、次のように無名関数の引数を指定しなくても、引数グループの左から右へ推論してくれる。
+
+```
+scala> List.dropWhile2(List(1,2,3,4,5))(x => x < 4)
+res19: List[Int] = Cons(4,Cons(5,Nil))
+```
